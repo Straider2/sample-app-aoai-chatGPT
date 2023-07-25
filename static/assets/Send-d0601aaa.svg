@@ -1,10 +1,1 @@
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M1.7899 0.624791C0.827158 0.165808 -0.231189 1.04584 0.0444367 2.07616L2.05964 9.60921C2.16316 9.99621 2.48766 10.2841 2.88425 10.3407L12.7676 11.7526C13.0538 11.7935 13.0538 12.2067 12.7676 12.2476L2.88529 13.6594C2.4887 13.716 2.16421 14.0039 2.06068 14.3909L0.0444365 21.9278C-0.231191 22.9582 0.827162 23.8382 1.7899 23.3792L23.2875 13.1303C24.2369 12.6777 24.2369 11.3263 23.2875 10.8737L1.7899 0.624791Z" fill="url(#paint0_radial_2280_119090)"/>
-<defs>
-<radialGradient id="paint0_radial_2280_119090" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(24.0234 21.2469) rotate(-142.006) scale(33.4402 32.3913)">
-<stop offset="0.336272" stop-color="#0F6CBD"/>
-<stop offset="0.703125" stop-color="#2D87C3"/>
-<stop offset="1" stop-color="#8DDDD8"/>
-</radialGradient>
-</defs>
-</svg>
+<?xml version="1.0" ?><!DOCTYPE svg  PUBLIC '-//W3C//DTD SVG 1.1//EN'  'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'><svg enable-background="new 0 0 800 800" version="1.1" viewBox="0 0 800 800" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="Layer_1"><path d="M771.9,400c0,205.3-166.6,371.9-371.9,371.9S28.1,605.3,28.1,400S194.7,28.1,400,28.1   S771.9,194.7,771.9,400z" fill="#4DB6AC"/></g><g id="Layer_2"><g><polygon fill="none" points="    582.8,231.7 170.8,380.6 311,461.8 370.6,613.2   " stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="16"/><line fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="16" x1="311" x2="582.8" y1="461.8" y2="231.7"/></g></g></svg>
