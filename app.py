@@ -1,3 +1,4 @@
+from azure.storage.blob import BlobServiceClient
 import json
 import os
 import logging
@@ -152,14 +153,16 @@ def stream_with_data(body, headers, endpoint):
                         if deltaText != "[DONE]":
                             response["choices"][0]["messages"][1]["content"] += deltaText
 
+                    # log azure
+                    if role == "assistant":
+                responseText = lineJson["choices"][0]["messages"][0]["delta"].get("content")
+                write_log_to_blob(f"User: {request_messages[-1]['content']}, Assistant: {responseText}\n")
+
                     yield json.dumps(response).replace("\n", "\\n") + "\n"
     except Exception as e:
         yield json.dumps({"error": str(e)}).replace("\n", "\\n") + "\n"
         
-# No final da função 'stream_with_data':
-if role == "assistant":
-    responseText = lineJson["choices"][0]["messages"][0]["delta"].get("content")
-    write_log_to_blob(f"User: {request_messages[-1]['content']}, Assistant: {responseText}\n")
+
         
 
 
@@ -231,7 +234,7 @@ def conversation_without_data(request):
         stream=SHOULD_STREAM
     )
 
-    # E na função 'conversation_without_data', antes do 'if not SHOULD_STREAM:'
+    # log azure
 responseText = response.choices[0].message.content
 write_log_to_blob(f"User: {request_messages[-1]['content']}, Assistant: {responseText}\n")
     
