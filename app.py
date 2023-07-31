@@ -1,33 +1,29 @@
-# from azure.storage.blob import BlobServiceClient
 import json
 import os
 import logging
 import requests
 import openai
-from flask import Flask, Response, request, jsonify
+import uuid
+from flask import Flask, Response, request, jsonify, send_from_directory
 from dotenv import load_dotenv
 
 load_dotenv()
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static")
 
-# Configuração do Azure Blob Storage
-blob_service_client = BlobServiceClient.from_connection_string("DefaultEndpointsProtocol=https;AccountName=rgopenaib4c0;AccountKey=/jJPnC6/f7cek/DFQ0e0bbJBGpHHUt+Gbq6PEIFGOOF/ToYDeujDoPESJtZ1p3y5p75AkaRKbHAm+AStVIbSbQ==;EndpointSuffix=core.windows.net")
-blob_container_client = blob_service_client.get_container_client("log")
-blob_client = blob_container_client.get_blob_client("rgopenaib4c0")
+# Static Files
+@app.route("/")
+def index():
+    return app.send_static_file("index.html")
 
-def write_log_to_blob(log_line):
-    # Verificando se o blob já existe, senão, cria
-    if not blob_client.exists():
-        blob_client.create_append_blob()
+@app.route("/favicon.ico")
+def favicon():
+    return app.send_static_file('favicon.ico')
 
-    # Adicionando a linha de log ao blob
-    blob_client.append_block(log_line)
+@app.route("/assets/<path:path>")
+def assets(path):
+    return send_from_directory("static/assets", path)
 
-@app.route("/", defaults={"path": "index.html"})
-@app.route("/<path:path>")
-def static_file(path):
-    return app.send_static_file(path)
 
 # ACS Integration Settings
 AZURE_SEARCH_SERVICE = os.environ.get("AZURE_SEARCH_SERVICE")
@@ -43,6 +39,13 @@ AZURE_SEARCH_TITLE_COLUMN = os.environ.get("AZURE_SEARCH_TITLE_COLUMN")
 AZURE_SEARCH_URL_COLUMN = os.environ.get("AZURE_SEARCH_URL_COLUMN")
 
 # AOAI Integration Settings
+from azure.storage.blob import BlobServiceClient
+
+# Create a blob service client
+blob_service_client = BlobServiceClient.from_connection_string("DefaultEndpointsProtocol=https;AccountName=rgopenaib4c0;AccountKey=/jJPnC6/f7cek/DFQ0e0bbJBGpHHUt+Gbq6PEIFGOOF/ToYDeujDoPESJtZ1p3y5p75AkaRKbHAm+AStVIbSbQ==;EndpointSuffix=core.windows.net")
+
+# Get a reference to the container where you want to store the data
+blob_container_client = blob_service_client.get_container_client("log")
 AZURE_OPENAI_RESOURCE = os.environ.get("AZURE_OPENAI_RESOURCE")
 AZURE_OPENAI_MODEL = os.environ.get("AZURE_OPENAI_MODEL")
 AZURE_OPENAI_KEY = os.environ.get("AZURE_OPENAI_KEY")
@@ -153,17 +156,9 @@ def stream_with_data(body, headers, endpoint):
                         if deltaText != "[DONE]":
                             response["choices"][0]["messages"][1]["content"] += deltaText
 
-                    # log azure
-                    if role == "assistant":
-                responseText = lineJson["choices"][0]["messages"][0]["delta"].get("content")
-                write_log_to_blob(f"User: {request_messages[-1]['content']}, Assistant: {responseText}\n")
-
                     yield json.dumps(response).replace("\n", "\\n") + "\n"
     except Exception as e:
         yield json.dumps({"error": str(e)}).replace("\n", "\\n") + "\n"
-        
-
-        
 
 
 def conversation_with_data(request):
@@ -234,10 +229,6 @@ def conversation_without_data(request):
         stream=SHOULD_STREAM
     )
 
-    # log azure
-responseText = response.choices[0].message.content
-write_log_to_blob(f"User: {request_messages[-1]['content']}, Assistant: {responseText}\n")
-    
     if not SHOULD_STREAM:
         response_obj = {
             "id": response,
@@ -267,6 +258,21 @@ def conversation():
             return conversation_with_data(request)
         else:
             return conversation_without_data(request)
+    except Exception as e:
+        logging.exception("Exception in /conversation")
+                # After getting a response, log the conversation to Azure Blob Storage
+        message = {"user_input": request.json["messages"], "model_response": response.get_json()}
+        blob_name = str(uuid.uuid4()) + ".json"  # Choose a unique name for each blob
+
+        blob_client = blob_container_client.get_blob_client(blob_name)
+
+        # Convert the message to a JSON string
+        message_json = json.dumps(message)
+
+        # Upload the message to the blob
+        blob_client.upload_blob(message_json)
+
+        return response
     except Exception as e:
         logging.exception("Exception in /conversation")
         return jsonify({"error": str(e)}), 500
