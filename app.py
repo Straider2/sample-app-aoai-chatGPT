@@ -4,6 +4,7 @@ import logging
 import requests
 import openai
 import uuid
+from datetime import datetime
 from flask import Flask, Response, request, jsonify, send_from_directory
 from dotenv import load_dotenv
 
@@ -262,7 +263,7 @@ def conversation():
         logging.exception("Exception in /conversation")
                 # After getting a response, log the conversation to Azure Blob Storage
         message = {"user_input": request.json["messages"], "model_response": response.get_json()}
-        blob_name = str(uuid.uuid4()) + ".json"  # Choose a unique name for each blob
+        blob_name = datetime.now().strftime("%Y-%m-%d_%H-%M-%S.json")  # Choose a unique name for each blob
 
         blob_client = blob_container_client.get_blob_client(blob_name)
 
