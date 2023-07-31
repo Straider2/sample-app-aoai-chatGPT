@@ -38,12 +38,13 @@ AZURE_SEARCH_CONTENT_COLUMNS = os.environ.get("AZURE_SEARCH_CONTENT_COLUMNS")
 AZURE_SEARCH_FILENAME_COLUMN = os.environ.get("AZURE_SEARCH_FILENAME_COLUMN")
 AZURE_SEARCH_TITLE_COLUMN = os.environ.get("AZURE_SEARCH_TITLE_COLUMN")
 AZURE_SEARCH_URL_COLUMN = os.environ.get("AZURE_SEARCH_URL_COLUMN")
+BLOB_STRING = os.environ.get("BLOB_STRING")
 
 # AOAI Integration Settings
 from azure.storage.blob import BlobServiceClient
 
 # Create a blob service client
-blob_service_client = BlobServiceClient.from_connection_string("DefaultEndpointsProtocol=https;AccountName=rgopenaib4c0;AccountKey=/jJPnC6/f7cek/DFQ0e0bbJBGpHHUt+Gbq6PEIFGOOF/ToYDeujDoPESJtZ1p3y5p75AkaRKbHAm+AStVIbSbQ==;EndpointSuffix=core.windows.net")
+blob_service_client = BlobServiceClient.from_connection_string("BLOB_STRING")
 
 # Get a reference to the container where you want to store the data
 blob_container_client = blob_service_client.get_container_client("log")
