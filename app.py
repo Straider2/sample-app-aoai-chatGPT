@@ -44,7 +44,7 @@ BLOB_STRING = os.environ.get("BLOB_STRING")
 from azure.storage.blob import BlobServiceClient
 
 # Create a blob service client
-blob_service_client = BlobServiceClient.from_connection_string("BLOB_STRING")
+blob_service_client = BlobServiceClient.from_connection_string(os.environ.get("BLOB_STRING"))
 
 # Get a reference to the container where you want to store the data
 blob_container_client = blob_service_client.get_container_client("log")
