@@ -12,6 +12,9 @@ load_dotenv()
 
 app = Flask(__name__, static_folder="static")
 
+# Creating a list to store the conversation
+conversation_log = []
+
 # Static Files
 @app.route("/")
 def index():
@@ -261,19 +264,24 @@ def conversation():
         else:
             response = conversation_without_data(request)
 
-        response_json = response.get_json()
-
         # After getting a response, log the conversation to Azure Blob Storage
-        message = {"user_input": request.json["messages"], "model_response": response_json}
+        message = {"user_input": request.json["messages"], "model_response": response.get_json()}
+
+        # Append the conversation to the conversation_log
+        conversation_log.append(message)
+
         blob_name = datetime.now().strftime("%Y-%m-%d_%H-%M-%S.json")  # Choose a unique name for each blob
 
         blob_client = blob_container_client.get_blob_client(blob_name)
 
         # Convert the message to a JSON string
-        message_json = json.dumps(message)
+        message_json = json.dumps(conversation_log)
 
         # Upload the message to the blob
         blob_client.upload_blob(message_json)
+
+        # Clear the conversation_log for the next conversation
+        conversation_log.clear()
 
         return response
     except Exception as e:
