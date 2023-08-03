@@ -261,26 +261,32 @@ def conversation():
         else:
             response = conversation_without_data(request)
 
-        response_json = response.get_json()
-
         # After getting a response, log the conversation to Azure Blob Storage
-        # Only log the conversation if we have a model response
-        if response_json:
-            message = {"user_input": request.json["messages"], "model_response": response_json}
-            blob_name = datetime.now().strftime("%Y-%m-%d_%H-%M-%S.json")  # Choose a unique name for each blob
+        if request.method == "POST":
+            # Extract the user's message from the request
+            user_input = request.json["messages"]
+            
+            # Extract the model's response
+            model_response = response.get_json()
+            
+            # Log the conversation only if the model provided a response
+            if model_response is not None:
+                message = {"user_input": user_input, "model_response": model_response}
+                blob_name = datetime.now().strftime("%Y-%m-%d_%H-%M-%S.json")  # Choose a unique name for each blob
 
-            blob_client = blob_container_client.get_blob_client(blob_name)
+                blob_client = blob_container_client.get_blob_client(blob_name)
 
-            # Convert the message to a JSON string
-            message_json = json.dumps(message)
+                # Convert the message to a JSON string
+                message_json = json.dumps(message)
 
-            # Upload the message to the blob
-            blob_client.upload_blob(message_json)
-
+                # Upload the message to the blob
+                blob_client.upload_blob(message_json)
+            
         return response
     except Exception as e:
         logging.exception("Exception in /conversation")
         return jsonify({"error": str(e)}), 500
+
 
 
 
