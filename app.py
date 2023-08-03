@@ -261,8 +261,10 @@ def conversation():
         else:
             response = conversation_without_data(request)
 
+        response_json = response.get_json()
+
         # After getting a response, log the conversation to Azure Blob Storage
-        message = {"user_input": request.json["messages"], "model_response": response.get_json()}
+        message = {"user_input": request.json["messages"], "model_response": response_json}
         blob_name = datetime.now().strftime("%Y-%m-%d_%H-%M-%S.json")  # Choose a unique name for each blob
 
         blob_client = blob_container_client.get_blob_client(blob_name)
@@ -277,6 +279,7 @@ def conversation():
     except Exception as e:
         logging.exception("Exception in /conversation")
         return jsonify({"error": str(e)}), 500
+
 
 
 if __name__ == "__main__":
