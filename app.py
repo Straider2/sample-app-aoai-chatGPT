@@ -264,21 +264,24 @@ def conversation():
         response_json = response.get_json()
 
         # After getting a response, log the conversation to Azure Blob Storage
-        message = {"user_input": request.json["messages"], "model_response": response_json}
-        blob_name = datetime.now().strftime("%Y-%m-%d_%H-%M-%S.json")  # Choose a unique name for each blob
+        # Only log the conversation if we have a model response
+        if response_json:
+            message = {"user_input": request.json["messages"], "model_response": response_json}
+            blob_name = datetime.now().strftime("%Y-%m-%d_%H-%M-%S.json")  # Choose a unique name for each blob
 
-        blob_client = blob_container_client.get_blob_client(blob_name)
+            blob_client = blob_container_client.get_blob_client(blob_name)
 
-        # Convert the message to a JSON string
-        message_json = json.dumps(message)
+            # Convert the message to a JSON string
+            message_json = json.dumps(message)
 
-        # Upload the message to the blob
-        blob_client.upload_blob(message_json)
+            # Upload the message to the blob
+            blob_client.upload_blob(message_json)
 
         return response
     except Exception as e:
         logging.exception("Exception in /conversation")
         return jsonify({"error": str(e)}), 500
+
 
 
 
