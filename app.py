@@ -3,17 +3,12 @@ import os
 import logging
 import requests
 import openai
-import uuid
-from datetime import datetime
 from flask import Flask, Response, request, jsonify, send_from_directory
 from dotenv import load_dotenv
 
 load_dotenv()
 
 app = Flask(__name__, static_folder="static")
-
-# Creating a list to store the conversation
-conversation_log = []
 
 # Static Files
 @app.route("/")
@@ -41,16 +36,8 @@ AZURE_SEARCH_CONTENT_COLUMNS = os.environ.get("AZURE_SEARCH_CONTENT_COLUMNS")
 AZURE_SEARCH_FILENAME_COLUMN = os.environ.get("AZURE_SEARCH_FILENAME_COLUMN")
 AZURE_SEARCH_TITLE_COLUMN = os.environ.get("AZURE_SEARCH_TITLE_COLUMN")
 AZURE_SEARCH_URL_COLUMN = os.environ.get("AZURE_SEARCH_URL_COLUMN")
-BLOB_STRING = os.environ.get("BLOB_STRING")
 
 # AOAI Integration Settings
-from azure.storage.blob import BlobServiceClient
-
-# Create a blob service client
-blob_service_client = BlobServiceClient.from_connection_string(os.environ.get("BLOB_STRING"))
-
-# Get a reference to the container where you want to store the data
-blob_container_client = blob_service_client.get_container_client("log")
 AZURE_OPENAI_RESOURCE = os.environ.get("AZURE_OPENAI_RESOURCE")
 AZURE_OPENAI_MODEL = os.environ.get("AZURE_OPENAI_MODEL")
 AZURE_OPENAI_KEY = os.environ.get("AZURE_OPENAI_KEY")
@@ -93,7 +80,7 @@ def prepare_body_headers_with_data(request):
                     "key": AZURE_SEARCH_KEY,
                     "indexName": AZURE_SEARCH_INDEX,
                     "fieldsMapping": {
-                        "contentField": AZURE_SEARCH_CONTENT_COLUMNS.split("|") if AZURE_SEARCH_CONTENT_COLUMNS else [],
+                        "contentFields": AZURE_SEARCH_CONTENT_COLUMNS.split("|") if AZURE_SEARCH_CONTENT_COLUMNS else [],
                         "titleField": AZURE_SEARCH_TITLE_COLUMN if AZURE_SEARCH_TITLE_COLUMN else None,
                         "urlField": AZURE_SEARCH_URL_COLUMN if AZURE_SEARCH_URL_COLUMN else None,
                         "filepathField": AZURE_SEARCH_FILENAME_COLUMN if AZURE_SEARCH_FILENAME_COLUMN else None
@@ -260,35 +247,12 @@ def conversation():
     try:
         use_data = should_use_data()
         if use_data:
-            response = conversation_with_data(request)
+            return conversation_with_data(request)
         else:
-            response = conversation_without_data(request)
-
-        # After getting a response, log the conversation to Azure Blob Storage
-        message = {"user_input": request.json["messages"], "model_response": response.get_json()}
-
-        # Append the conversation to the conversation_log
-        conversation_log.append(message)
-
-        blob_name = datetime.now().strftime("%Y-%m-%d_%H-%M-%S.json")  # Choose a unique name for each blob
-
-        blob_client = blob_container_client.get_blob_client(blob_name)
-
-        # Convert the message to a JSON string
-        message_json = json.dumps(conversation_log)
-
-        # Upload the message to the blob
-        blob_client.upload_blob(message_json)
-
-        # Clear the conversation_log for the next conversation
-        conversation_log.clear()
-
-        return response
+            return conversation_without_data(request)
     except Exception as e:
         logging.exception("Exception in /conversation")
         return jsonify({"error": str(e)}), 500
-
-
 
 if __name__ == "__main__":
     app.run()
